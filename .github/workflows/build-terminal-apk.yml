@@ -18,8 +18,12 @@ jobs:
       - uses: ./.github/actions/init-submodules-with-retry
       - uses: ./.github/actions/setup-toolchain
 
+      # -PtargetAbi mirrors the release workflow: skip native builds for
+      # ABIs this job never packages. Without it the runner builds natives
+      # for every ABI and the 7GB hosted runner dies of memory starvation
+      # ("runner lost communication") ~80 minutes in.
       - name: Assemble arm64 terminal debug APK
-        run: ./gradlew :app:assembleArm64TerminalDebug --console=plain
+        run: ./gradlew :app:assembleArm64TerminalDebug -PtargetAbi=arm64 --console=plain
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
