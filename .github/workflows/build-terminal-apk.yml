@@ -1,0 +1,29 @@
+# One-off builder for a sideloadable arm64 Terminal-flavour debug APK.
+# Reuses the repo's own submodule + toolchain composite actions so the
+# build environment matches CI exactly. Trigger manually.
+name: Build terminal debug APK
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          submodules: false
+
+      - uses: ./.github/actions/init-submodules-with-retry
+      - uses: ./.github/actions/setup-toolchain
+
+      - name: Assemble arm64 terminal debug APK
+        run: ./gradlew :app:assembleArm64TerminalDebug --console=plain
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: haven-terminal-debug-apk
+          path: app/build/outputs/apk/**/debug/*.apk
+          if-no-files-found: error
